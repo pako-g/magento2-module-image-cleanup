@@ -34,12 +34,18 @@ You can use composer to install this module:
 composer require baldwin/magento2-module-image-cleanup
 ```
 
-Or download the code and put all the files in the directory `app/code/Baldwin/ImageCleanup`
+Or clone the repository directly into `app/code/Baldwin/ImageCleanup`:
+
+```sh
+git clone https://github.com/pako-g/magento2-module-image-cleanup app/code/Baldwin/ImageCleanup
+```
 
 After which you can then activate it in Magento using:
 
 ```sh
+bin/magento module:enable Baldwin_ImageCleanup
 bin/magento setup:upgrade
+bin/magento cache:flush
 ```
 
 ## Usage
@@ -55,8 +61,35 @@ There are some extra options for some of these commands:
 
 ```
       --no-stats        Skip calculating and outputting stats (filesizes, number of files, ...), this can speed up the command in case it runs slowly.
+  -w, --write[=FILE]    Write the list of files/entries to a .txt file instead of deleting them. Optionally specify a path; defaults to the var/ directory.
   -n, --no-interaction  Do not ask any interactive question
 ```
+
+### --write / -w option
+
+All four commands support a `--write` (or `-w`) option that saves the list of files or database entries to a `.txt` file **without performing any deletion**. This is useful to review what would be removed before committing to the cleanup.
+
+Usage examples:
+
+```sh
+# write to the default file in var/ (e.g. var/unused_product_images_2024-01-15_10-30-00.txt)
+bin/magento catalog:images:remove-unused-files -w
+bin/magento catalog:images:remove-unused-hash-directories --write
+bin/magento catalog:images:remove-corrupt-resized-files -w
+bin/magento catalog:images:remove-obsolete-db-entries -w
+
+# write to a custom path
+bin/magento catalog:images:remove-unused-files --write=/tmp/unused_images.txt
+```
+
+Default output file names in `var/`:
+
+| Command | Default file |
+|---|---|
+| `remove-unused-files` | `var/unused_product_images_<date>.txt` |
+| `remove-unused-hash-directories` | `var/unused_cache_hash_directories_<date>.txt` |
+| `remove-corrupt-resized-files` | `var/corrupt_resized_files_<date>.txt` |
+| `remove-obsolete-db-entries` | `var/obsolete_db_entries_<date>.txt` |
 
 The `-n` option can be used if you want to setup a cronjob to regularly call these cleanup commands, it will not ask for confirmation before removing files, and will just assume you said 'yes, go ahead' (which can be dangerous!)
 
